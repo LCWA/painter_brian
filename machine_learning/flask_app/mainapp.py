@@ -42,7 +42,6 @@ def _sanitize_tf_config(config_dict: dict = None) -> dict:
     return cfg
 
 def init_session():
-
     config_dict = None
     cfg = _sanitize_tf_config(config_dict)
     config_proto = tf.ConfigProto()
@@ -74,10 +73,9 @@ def predict_vangogh():
         rndNumber = random.randint(0 , 2**32 - 1)
         rnd = np.random.RandomState(rndNumber)
         z = rnd.randn(1, *model.input_shape[1:]) # [minibatch, component]
-
         images = model.run(z, None, **Gs_kwargs) # [minibatch, height, width, channel]
         image = Image.fromarray(images[0], 'RGB')
-
+        
         buffered = BytesIO()
         image.save(buffered, format="JPEG")
         img_str = base64.b64encode(buffered.getvalue())
@@ -85,10 +83,11 @@ def predict_vangogh():
     tf.reset_default_graph()
     del session
     del model
+    del _G 
+    del _D
     gc.collect()
-    return Response(img_str, mimetype='text/plain')
 
-    #return Response("test", mimetype='text/plain')
+    return Response(img_str, mimetype='text/plain')
 
 @app.route("/generate_image/claude-monet-impressionism")
 def predict_monet():
@@ -111,14 +110,14 @@ def predict_monet():
 
         images = model.run(z, None, **Gs_kwargs) # [minibatch, height, width, channel]
         image = Image.fromarray(images[0], 'RGB')
+
         buffered = BytesIO()
         image.save(buffered, format="JPEG")
         img_str = base64.b64encode(buffered.getvalue())
+
     tf.reset_default_graph()
     del session
     del model
     gc.collect()
-    return Response(img_str, mimetype='text/plain')
 
-if __name__ == '__main__':
-    app.run(host = '0.0.0.0', port = 5000, debug=False, threaded = True)
+    return Response(img_str, mimetype='text/plain')
