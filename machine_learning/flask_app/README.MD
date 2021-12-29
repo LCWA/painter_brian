@@ -13,6 +13,6 @@
     pip install Pillow
     pip install gunicorn
     
-    cd flask-app
+    cd flask_app
     gunicorn -b '0.0.0.0:5000' --max-requests=20 --threads=4 wsgi:app
 
