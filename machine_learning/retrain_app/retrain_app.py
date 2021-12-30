@@ -16,7 +16,7 @@ def retrain_vangoh():
         zip_filename = request.form['zip_filename']
 
         for key,value in request.files.items():
-            value.save(zip_filename)
+            value.save("/home/mauser/data/gan/images/" stR(artist) + "/" + str(style) + "/" + str(zip_filename))
 
         with open("/home/mauser/queue.dat", "a") as fout:
             fout.writelines([str(artist) + " " + str(style) + " " + str(zip_filename) + " new"])
