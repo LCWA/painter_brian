@@ -19,7 +19,7 @@ def retrain_vangoh():
             value.save("/home/mauser/data/gan/images/" + str(artist) + "/" + str(style) + "/" + str(zip_filename))
 
         with open("/home/mauser/queue.dat", "a") as fout:
-            fout.writelines([str(artist) + " " + str(style) + " " + str(zip_filename) + " new"])
+            fout.writelines([str(artist) + " " + str(style) + " " + str(zip_filename) + " True" + " new"])
 
         resp = jsonify(success=True)
         resp.status_code = 200
