@@ -18,6 +18,9 @@ def retrain_vangoh():
         for key,value in request.files.items():
             value.save(zip_filename)
 
+        with open("/home/mauser/queue.dat", "a") as fout:
+            fout.writelines([str(artist) + " " + str(style) + " " + str(zip_filename) + " new"])
+
         resp = jsonify(success=True)
         resp.status_code = 200
         return resp
