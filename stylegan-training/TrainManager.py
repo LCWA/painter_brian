@@ -28,8 +28,8 @@ class TrainingManager:
         self.dataset_path = f"{self.working_path}/data/gan/datasets/{artist}/{style}"
         self.output_path = f"{self.working_path}/data/gan/experiments/{artist}/{style}/"
         self.latest_generating = f"{self.working_path}/data/gan/latest_generating/{artist}/{style}/"
-        self.process_pid = None
-        self.subprocess_pid = None
+        # self.process_pid = None
+        # self.subprocess_pid = None
         # self.current_process = None
 
     def combine_sets(self, zip_name):
@@ -117,9 +117,11 @@ class TrainingManager:
         latest_file = max(list_of_files, key=os.path.getctime)
         return latest_file
 
-    def __switch_models(self, latest_model_path):
-        copy_generating = self.working_path + self.latest_generating + '/latest.pkl'
-        shutil.copyfile(latest_model_path, copy_generating)
+    def switch_models(self):
+        absolute_model_path = os.path.join(self.output_path, self.__find_latest_model())
+        p = subprocess.Popen(
+            ["scp", "-i /home/mauser/.ssh/id_ed25519", absolute_model_path,
+             f"mauser@207.53.234.71:~/flask_app/models/tmp/{self.artist}_{self.style}.pkl"])
 
     def train_fn(self, retrain=False, aug="ada", mirror=1, metrics="none", snap=1, kimg=5000):
         train_path = self.working_path + "/stylegan2-ada/train.py"
@@ -155,13 +157,13 @@ class TrainChecker:
     def __parse_kimg(self, last_line):
         splits = last_line.split(" ")
         for line2 in splits:
-                if re.match(r'^kimg', line2):
-                    val = splits[splits.index(line2)+1]
+            if re.match(r'^kimg', line2):
+                val = splits[splits.index(line2) + 1]
         return val
 
     def __get_last_line(self, file):
         last_line = ""
-        with open(file , 'r') as f:
+        with open(file, 'r') as f:
             content = f.read()
             content_list = content.splitlines()
 
@@ -216,11 +218,8 @@ class TrainChecker:
                 return 2
         else:
             with open(self.log_path, "w") as f:
-                f.write(str(current_tick)+" "+f"{str(remaining_kimg)}")
+                f.write(str(current_tick) + " " + f"{str(remaining_kimg)}")
             print("Job is healthy")
             return 3
 
 # 4914
-
-
-

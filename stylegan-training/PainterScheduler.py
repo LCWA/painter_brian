@@ -1,9 +1,11 @@
 import os
+import subprocess
 
 from TrainManager import TrainingManager, TrainChecker
 
+
 def system_check():
-    with open("/content/queue.dat", 'r') as f:
+    with open("/home/mauser/queue.dat", 'r') as f:
         if os.path.getsize("/content/queue.dat") == 0:
             print("Nothing left in the queue")
             return
@@ -16,7 +18,7 @@ def system_check():
         retrain = False if split[3] == "False" else True
         status = split[4]
 
-    train_manager = TrainingManager(artist, style, retrain=retrain, working_path="/content", kimg=5000, gpus=8)
+    train_manager = TrainingManager(artist, style, retrain=retrain, working_path="/home/mauser", kimg=5000, gpus=8)
     train_checker = TrainChecker(train_manager)
     if status == "new\n" or status == "new":
         if retrain:
@@ -26,12 +28,13 @@ def system_check():
         train_manager.prepare_images(512)
         train_manager.train_fn(kimg=5000, snap=100)
         lines[0] = f"{artist} {style} {zip} {retrain} running"+"\n"
-        with open("/content/queue.dat", 'w') as f:
+        with open("/home/mauser/queue.dat", 'w') as f:
             f.writelines(lines)
     else:
         check_value = train_checker.check()  # 1 - Restarting; 2 - Job Finished; 3 - Job is Healthy
         if check_value == 2:
-            with open("/content/queue.dat", 'r+') as f:
+            train_manager.switch_models()
+            with open("/home/mauser/queue.dat", 'r+') as f:
                 firstLine = f.readline()  # read the first line and throw it out
                 data = f.read()  # read the rest
                 f.seek(0)  # set the cursor to the top of the file
