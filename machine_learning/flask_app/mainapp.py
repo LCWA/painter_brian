@@ -15,8 +15,10 @@ import dnnlib.tflib as tflib
 app = Flask(__name__)
 
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
-gan_vangogh = "./models/vangogh_5kimgs_1st_model.pkl"
-gan_monet = "./models/monet_5kimgs_2nd_model.pkl"
+
+gan_vangogh = "./models/vangogh_realism_5kimgs_1st_model.pkl"
+gan_monet = "./models/monet_impressionism_5kimgs_2nd_model.pkl"
+gan_rembrandt = "./models/rembrandt_baroque_3.2kimgs_3rd_model.pkl"
 
 def _sanitize_tf_config(config_dict: dict = None) -> dict:
     # Defaults.
@@ -55,7 +57,7 @@ def init_session():
 
     return tf.Session(config=config_proto)
 
-@app.route("/generate_image/van-gogh-realism")
+@app.route("/generate_image/vincent-van-gogh-realism")
 def predict_vangogh():
 
     session = init_session()
@@ -118,6 +120,41 @@ def predict_monet():
     tf.reset_default_graph()
     del session
     del model
+    gc.collect()
+
+    return Response(img_str, mimetype='text/plain')
+
+
+@app.route("/generate_image/rembrandt-baroque")
+def predict_rembrandt():
+
+    session = init_session()
+
+    with session:
+        with dnnlib.util.open_url(gan_rembrandt) as fp:
+            _G, _D, model = pickle.load(fp)
+    
+        Gs_kwargs = {
+            'output_transform': dict(func=tflib.convert_images_to_uint8, nchw_to_nhwc=True),
+            'randomize_noise': False,
+            'truncation_psi': 0.5
+        }   
+
+        rndNumber = random.randint(0 , 2**32 - 1)
+        rnd = np.random.RandomState(rndNumber)
+        z = rnd.randn(1, *model.input_shape[1:]) # [minibatch, component]
+        images = model.run(z, None, **Gs_kwargs) # [minibatch, height, width, channel]
+        image = Image.fromarray(images[0], 'RGB')
+        
+        buffered = BytesIO()
+        image.save(buffered, format="JPEG")
+        img_str = base64.b64encode(buffered.getvalue())
+
+    tf.reset_default_graph()
+    del session
+    del model
+    del _G 
+    del _D
     gc.collect()
 
     return Response(img_str, mimetype='text/plain')
