@@ -6,6 +6,7 @@ import tensorflow as tf
 import base64
 import gc
 import os
+import shutil
 import numpy as np
 import random
 import dnnlib
@@ -16,9 +17,29 @@ app = Flask(__name__)
 
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
-gan_vangogh = "./models/vangogh_realism_5kimgs_1st_model.pkl"
-gan_monet = "./models/monet_impressionism_5kimgs_2nd_model.pkl"
-gan_rembrandt = "./models/rembrandt_baroque_3.2kimgs_3rd_model.pkl"
+gan_vangogh = "./models/vangogh_realism.pkl"
+gan_monet = "./models/monet_impressionism.pkl"
+gan_rembrandt = "./models/rembrandt_baroque.pkl"
+
+tmp_gan_vangogh = "vangogh_realism.pkl"
+tmp_monet = "monet_impressionism.pkl"
+tmp_rembrandt = "rembrandt_baroque.pkl"
+
+tmpFolder = "./models/tmp/"
+
+
+#Move all files on application restart
+def setup_app(app):
+    if os.path.isfile(tmpFolder + tmp_gan_vangogh):
+        shutil.move(tmpFolder + tmp_gan_vangogh, gan_vangogh)
+
+    if os.path.isfile(tmpFolder + tmp_monet):
+        shutil.move(tmpFolder + tmp_monet, gan_monet)
+
+    if os.path.isfile(tmpFolder + tmp_rembrandt):
+        shutil.move(tmpFolder + tmp_rembrandt, gan_rembrandt)
+
+setup_app(app)
 
 def _sanitize_tf_config(config_dict: dict = None) -> dict:
     # Defaults.
