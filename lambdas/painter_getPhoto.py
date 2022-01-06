@@ -16,6 +16,8 @@ def lambda_handler(event, context):
     s3_path = "generated/image ({}).png"
     s3_new_path = "image ({}).png"
     s3 = boto3.resource("s3")
+
+    # modify the first part of this url based off of your images from your S3
     url = "https://painterstorage.s3.us-east-2.amazonaws.com/" + artist + user + "image+({}).png"
     
     new_url = "no photos left"
